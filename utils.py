@@ -3,6 +3,7 @@ from PIL import Image
 import torch
 from transformers import AutoProcessor, LlavaForConditionalGeneration
 import gc
+import csv
 
 def prune_llava_model(model_name, unimportance_order):
     """
@@ -132,9 +133,9 @@ def perform_inference(model, processor, prompt_text, image_url):
     # Decode and return the result
     return processor.decode(output[0], skip_special_tokens=True)
 
-def iterative_pruning_and_inference(model_name, processor, unimportance_orders, prompt_text, image_url):
+def iterative_pruning_and_inference(model_name, processor, unimportance_orders, prompt_text, image_url, output_csv):
     """
-    Iteratively prune the model and perform inference.
+    Iteratively prune the model, perform inference, and save responses.
 
     Args:
         model_name: Name of the model to load.
@@ -142,23 +143,31 @@ def iterative_pruning_and_inference(model_name, processor, unimportance_orders, 
         unimportance_orders: List of lists containing unimportance orders for pruning.
         prompt_text: A string containing the user prompt.
         image_url: URL of the image to process.
-
+        output_csv: Path to the CSV file where results will be saved.
     """
-    for i in range(1, len(unimportance_orders) + 1):
-        current_order = unimportance_orders[:i]
-        print(f"Running pruning for unimportance order: {current_order}")
+    with open(output_csv, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["num_of_layers", "response"])
 
-        # Prune the model
-        model_pruned = prune_llava_model(model_name, current_order)
+        for i in range(1, len(unimportance_orders) + 1):
+            current_order = unimportance_orders[:i]
+            print(f"Running pruning for unimportance order: {current_order}")
 
-        # Perform inference
-        response = perform_inference(model_pruned, processor, prompt_text, image_url)
-        print(f"Response for pruning {current_order}: {response}")
+            # Prune the model
+            model_pruned = prune_llava_model(model_name, current_order)
 
-        # Clear GPU memory
-        del model_pruned
-        torch.cuda.empty_cache()
-        gc.collect()
+            # Perform inference
+            response = perform_inference(model_pruned, processor, prompt_text, image_url)
+            print(f"Response for pruning {current_order}: {response}")
+
+            # Save results to CSV
+            num_layers_remaining = len(model_pruned.config.text_config.__getattribute__("num_hidden_layers"))
+            writer.writerow([num_layers_remaining, response])
+
+            # Clear GPU memory
+            del model_pruned
+            torch.cuda.empty_cache()
+            gc.collect()
 
 # Example usage
 # model_name = "Aranya31/Derm-LLaVA-1.5-7b-conv2"
@@ -166,4 +175,5 @@ def iterative_pruning_and_inference(model_name, processor, unimportance_orders, 
 # unimportance_orders = [1, 2, 3]
 # prompt = "What is in this photo?"
 # image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
-# iterative_pruning_and_inference(model_name, processor, unimportance_orders, prompt, image_url)
+# output_csv = "responses.csv"
+# iterative_pruning_and_inference(model_name, processor, unimportance_orders, prompt, image_url, output_csv)
