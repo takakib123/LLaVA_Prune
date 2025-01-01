@@ -1,19 +1,26 @@
 import requests
 from PIL import Image
-import time
-import copy
 import torch
 from transformers import AutoProcessor, LlavaForConditionalGeneration
+import gc
 
 def prune_llava_model(model_name, unimportance_order):
-    # Load the original model
+    """
+    Prune the LLAVA model based on unimportance order.
+
+    Args:
+        model_name: Name of the model to load.
+        unimportance_order: List of layer indices to prune.
+
+    Returns:
+        The pruned model.
+    """
     model_orig = LlavaForConditionalGeneration.from_pretrained(
         model_name,
         torch_dtype=torch.float16,
         low_cpu_mem_usage=True,
     )
 
-    # Load the processor
     processor = AutoProcessor.from_pretrained(model_name)
 
     def copy_weight(model, model_orig, list_pruned_blocks):
@@ -72,7 +79,6 @@ def prune_llava_model(model_name, unimportance_order):
 
         return model
 
-    # Adjust the configuration for pruning
     config = copy.deepcopy(model_orig.config)
     print(f"# blocks before pruning: {config.text_config.num_hidden_layers}")
     num_pruned_blocks = len(unimportance_order)
@@ -80,7 +86,6 @@ def prune_llava_model(model_name, unimportance_order):
         "num_hidden_layers", (config.text_config.num_hidden_layers - num_pruned_blocks)
     )
 
-    # Create a pruned model
     model_pruned = LlavaForConditionalGeneration(config).to("cpu")
     model_pruned = copy_weight(
         model_pruned, model_orig, unimportance_order[:num_pruned_blocks]
@@ -89,16 +94,7 @@ def prune_llava_model(model_name, unimportance_order):
     model_pruned.half()
     model_pruned.to("cuda")
 
-    # Calculate the number of parameters after pruning
-    after_pruning_parameters = sum(p.numel() for p in model_pruned.parameters() if p.requires_grad)
-    print(f"Parameters after pruning: {after_pruning_parameters}")
-
     return model_pruned
-
-# Example usage
-# model_name = "Aranya31/Derm-LLaVA-1.5-7b-conv2"
-# unimportance_order = [8, 11, 25, 27]
-# pruned_model = prune_llava_model(model_name, unimportance_order)
 
 def perform_inference(model, processor, prompt_text, image_url):
     """
@@ -136,9 +132,38 @@ def perform_inference(model, processor, prompt_text, image_url):
     # Decode and return the result
     return processor.decode(output[0], skip_special_tokens=True)
 
+def iterative_pruning_and_inference(model_name, processor, unimportance_orders, prompt_text, image_url):
+    """
+    Iteratively prune the model and perform inference.
+
+    Args:
+        model_name: Name of the model to load.
+        processor: The AutoProcessor associated with the model.
+        unimportance_orders: List of lists containing unimportance orders for pruning.
+        prompt_text: A string containing the user prompt.
+        image_url: URL of the image to process.
+
+    """
+    for i in range(1, len(unimportance_orders) + 1):
+        current_order = unimportance_orders[:i]
+        print(f"Running pruning for unimportance order: {current_order}")
+
+        # Prune the model
+        model_pruned = prune_llava_model(model_name, current_order)
+
+        # Perform inference
+        response = perform_inference(model_pruned, processor, prompt_text, image_url)
+        print(f"Response for pruning {current_order}: {response}")
+
+        # Clear GPU memory
+        del model_pruned
+        torch.cuda.empty_cache()
+        gc.collect()
+
 # Example usage
-# model_pruned and processor should be defined and loaded beforehand
+# model_name = "Aranya31/Derm-LLaVA-1.5-7b-conv2"
+# processor = AutoProcessor.from_pretrained(model_name)
+# unimportance_orders = [1, 2, 3]
 # prompt = "What is in this photo?"
 # image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
-# response = perform_inference(model_pruned, processor, prompt, image_url)
-# print(response)
+# iterative_pruning_and_inference(model_name, processor, unimportance_orders, prompt, image_url)
