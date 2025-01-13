@@ -96,6 +96,7 @@ def prune_llava_model(model_name, unimportance_order):
 
     model_pruned.half()
     model_pruned.to("cuda")
+    gc.collect()
 
     return model_pruned
 
