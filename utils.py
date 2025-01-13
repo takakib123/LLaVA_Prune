@@ -165,7 +165,7 @@ def iterative_pruning_and_inference(model_name, processor, unimportance_orders, 
             print(f"Response for pruning {current_order}: {response}")
 
             # Save results to CSV
-            num_layers_remaining = len(model_pruned.config.text_config.__getattribute__("num_hidden_layers"))
+            num_layers_remaining = 32- i
             writer.writerow([num_layers_remaining, response])
 
             # Clear GPU memory
