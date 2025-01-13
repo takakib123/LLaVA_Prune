@@ -124,7 +124,8 @@ def perform_inference(model, processor, prompt_text, image_url):
     prompt = processor.apply_chat_template(conversation, add_generation_prompt=True)
 
     # Load and preprocess the image
-    raw_image = Image.open(requests.get(image_url, stream=True).raw)
+    # raw_image = Image.open(requests.get(image_url, stream=True).raw)
+    raw_image = Image.open(image_url)
     inputs = processor(images=raw_image, text=prompt, return_tensors='pt').to(0, torch.float16)
 
     # Perform inference
