@@ -1,0 +1,12 @@
+torch
+torchvision
+accelerate
+peft
+deepspeed==0.14.4
+tiktoken
+
+matplotlib
+bitsandbytes
+sentencepiece
+wandb
+protobuf
