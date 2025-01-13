@@ -22,7 +22,10 @@ def prune_llava_model(model_name, unimportance_order):
         low_cpu_mem_usage=True,
     )
 
-    processor = AutoProcessor.from_pretrained(model_name)
+    processor = AutoProcessor.from_pretrained(
+'llava-hf/llava-1.5-7b-hf',
+revision='a272c74'
+)
 
     def copy_weight(model, model_orig, list_pruned_blocks):
         connect_info = {}
