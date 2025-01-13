@@ -166,7 +166,7 @@ def iterative_pruning_and_inference(model_name, processor, unimportance_orders, 
 
             # Save results to CSV
             num_layers_remaining = 32- i
-            writer.writerow([num_layers_remaining, response])
+            writer.writerow([num_layers_remaining, current_order , response])
 
             # Clear GPU memory
             del model_pruned
