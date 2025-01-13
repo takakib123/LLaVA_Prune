@@ -4,6 +4,9 @@ import torch
 from transformers import AutoProcessor, LlavaForConditionalGeneration
 import gc
 import csv
+import copy
+
+
 
 def prune_llava_model(model_name, unimportance_order):
     """
