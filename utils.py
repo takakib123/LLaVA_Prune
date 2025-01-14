@@ -163,8 +163,10 @@ def iterative_pruning_and_inference(model_name, processor, unimportance_orders, 
             total_params = sum(p.numel() for p in model_pruned.parameters() if p.requires_grad)
 
             # Perform inference
+            t = time.time()
             response = perform_inference(model_pruned, processor, prompt_text, image_url)
-            print(f"Response for pruning {current_order}: {response}")
+            
+            print(f"Inference time {time.time() - t:.5f} sec. Response for pruning {current_order}: {response}, ")
 
             # Save results to CSV
             num_layers_remaining = 32- i
