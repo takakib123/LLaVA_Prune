@@ -179,10 +179,4 @@ def iterative_pruning_and_inference(model_name, processor, unimportance_orders, 
             gc.collect()
 
 # Example usage
-# model_name = "Aranya31/Derm-LLaVA-1.5-7b-conv2"
-# processor = AutoProcessor.from_pretrained(model_name)
-# unimportance_orders = [1, 2, 3]
-# prompt = "What is in this photo?"
-# image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
-# output_csv = "responses.csv"
 # iterative_pruning_and_inference(model_name, processor, unimportance_orders, prompt, image_url, output_csv)
