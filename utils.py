@@ -151,7 +151,7 @@ def iterative_pruning_and_inference(model_name, processor, unimportance_orders, 
     """
     with open(output_csv, mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["num_of_layers", "response"])
+        writer.writerow(["num_of_layers","Order", "Params" , "response"])
 
         for i in range(1, len(unimportance_orders) + 1):
             current_order = unimportance_orders[:i]
@@ -159,6 +159,8 @@ def iterative_pruning_and_inference(model_name, processor, unimportance_orders, 
 
             # Prune the model
             model_pruned = prune_llava_model(model_name, current_order)
+            total_params = 0
+            total_params = sum(p.numel() for p in model_pruned.parameters() if p.requires_grad)
 
             # Perform inference
             response = perform_inference(model_pruned, processor, prompt_text, image_url)
@@ -166,10 +168,12 @@ def iterative_pruning_and_inference(model_name, processor, unimportance_orders, 
 
             # Save results to CSV
             num_layers_remaining = 32- i
-            writer.writerow([num_layers_remaining, current_order , response])
+            writer.writerow([num_layers_remaining, current_order, total_params , response])
 
             # Clear GPU memory
             del model_pruned
+            del p 
+            del total_params
             torch.cuda.empty_cache()
             gc.collect()
 
