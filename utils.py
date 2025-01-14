@@ -40,7 +40,7 @@ def prune_llava_model(model_name, unimportance_order):
                 vision_tower_pruned[key].copy_(vision_tower_orig[key])
             else:
                 print(f"Warning: {key} not found in model_orig.vision_tower")
-        print("Vision tower weights copied successfully.")
+        #print("Vision tower weights copied successfully.")
 
         mm_projector_orig = model_orig.multi_modal_projector.state_dict()
         mm_projector_pruned = model.multi_modal_projector.state_dict()
@@ -50,7 +50,7 @@ def prune_llava_model(model_name, unimportance_order):
                 mm_projector_pruned[key].copy_(mm_projector_orig[key])
             else:
                 print(f"Warning: {key} not found in model_orig.multi_modal_projector")
-        print("Multi-modal projector weights copied successfully.")
+        #print("Multi-modal projector weights copied successfully.")
 
         k = 0
         for k_orig in range(model_orig.config.text_config.__getattribute__("num_hidden_layers")):
@@ -58,7 +58,7 @@ def prune_llava_model(model_name, unimportance_order):
                 continue
 
             connect_info[f"model.layers.{k}."] = f"model.layers.{k_orig}."
-            print(f"original model.layers.{k_orig} --> pruned model.layers.{k}")
+            #print(f"original model.layers.{k_orig} --> pruned model.layers.{k}")
             k += 1
 
         print(f" ** excluded blocks {list_pruned_blocks}")
@@ -75,7 +75,7 @@ def prune_llava_model(model_name, unimportance_order):
                     break
 
             if flag == 1:
-                print(f"** forced COPY {k_orig} -> {k}")
+                #print(f"** forced COPY {k_orig} -> {k}")
                 model.language_model.state_dict()[k].copy_(model_orig.language_model.state_dict()[k_orig])
 
         print(f"copy time --- {(time.perf_counter()-t0):.1f} sec")
