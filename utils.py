@@ -172,7 +172,6 @@ def iterative_pruning_and_inference(model_name, processor, unimportance_orders, 
 
             # Clear GPU memory
             del model_pruned
-            del p 
             del total_params
             torch.cuda.empty_cache()
             gc.collect()
