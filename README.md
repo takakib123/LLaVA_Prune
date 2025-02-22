@@ -20,15 +20,17 @@ The script iteratively prunes the LLAVA model and performs inference on an image
 
 #### Example Code
 ```python
-from transformers import AutoProcessor
-
 model_name = "Aranya31/Derm-LLaVA-1.5-7b-conv2"
-unimportance_orders = [1, 2, 3]
-prompt = "What is in this photo?"
-image_url = "http://images.cocodataset.org/val2017/000000039769.jpg"
-processor = AutoProcessor.from_pretrained(model_name)
-
-iterative_pruning_and_inference(model_name, processor, unimportance_orders, prompt, image_url)
+model_id = "llava-hf/llava-1.5-7b-hf"
+processor = AutoProcessor.from_pretrained(
+'llava-hf/llava-1.5-7b-hf',
+revision='a272c74'
+)
+unimportance_orders = [23, 4, 18, 22, 21, 24, 17, 27, 20, 26, 19, 29, 28, 5]
+prompt = "What are the clinical features of rosacea?"
+image_url = "/kaggle/working/LLaVA_Prune/images/rosacea-70.jpg"
+output_csv = "responses.csv"
+iterative_pruning_and_inference(model_name, processor, unimportance_orders, prompt, image_url, output_csv)
 ```
 
 ### 2. Saving Results
