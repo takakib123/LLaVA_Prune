@@ -1,10 +1,15 @@
 """
 Pipeline functions for pruning and inference with LLaVA models.
 """
-
+import requests
+from PIL import Image
+import torch
+from transformers import AutoProcessor, LlavaForConditionalGeneration
+import gc
 import csv
+import copy
+import time
 import os
-from tqdm import tqdm
 from .pruning import prune_llava_model
 from .inference import perform_inference
 
