@@ -1,5 +1,5 @@
 # Pruning LLAVA Model for Efficient Inference
-![Question-Answer Pair](images/structural pruning.png)
+![Structural Pruning](images/structural_pruning.png)
 ## Features
 - Prunes the LLAVA model based on a given unimportance order.
 - Runs inference on pruned models to assess their performance.
