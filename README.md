@@ -31,7 +31,7 @@ revision='a272c74'
 )
 unimportance_orders = [23, 4, 18, 22, 21, 24, 17, 27, 20, 26, 19, 29, 28, 5]
 prompt = "What are the clinical features of rosacea?"
-image_url = "/kaggle/working/LLaVA_Prune/images/rosacea-70.jpg"
+image_url = "./images/rosacea-70.jpg"
 output_csv = "responses.csv"
 iterative_pruning_and_inference(model_name, processor, unimportance_orders, prompt, image_url, output_csv)
 ```
