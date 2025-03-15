@@ -1,7 +1,11 @@
-import torch
-from PIL import Image
 import requests
-from io import BytesIO
+from PIL import Image
+import torch
+from transformers import AutoProcessor, LlavaForConditionalGeneration
+import gc
+import csv
+import copy
+import time
 
 def perform_inference(model, processor, prompt_text, image_url):
     """
