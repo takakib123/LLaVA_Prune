@@ -3,46 +3,39 @@ from PIL import Image
 import requests
 from io import BytesIO
 
-
 def perform_inference(model, processor, prompt_text, image_url):
     """
-    Perform inference using a LLaVA model.
-    
+    Perform inference on a given prompt and image.
+
     Args:
-        model: The LLaVA model to use for inference.
-        processor: The processor for the model.
-        prompt_text (str): The text prompt to use.
-        image_url (str): URL or path to the image to use.
-        
+        model: The pruned LLAVA model loaded on GPU.
+        processor: The AutoProcessor associated with the model.
+        prompt_text: A string containing the user prompt.
+        image_url: URL of the image to process.
+
     Returns:
-        str: The generated response.
+        The generated response as a string.
     """
-    # Load image
-    if image_url.startswith(("http://", "https://")):
-        response = requests.get(image_url)
-        image = Image.open(BytesIO(response.content))
-    else:
-        image = Image.open(image_url)
-    
-    # Process inputs
-    inputs = processor(
-        prompt_text,
-        image,
-        return_tensors="pt"
-    ).to("cuda" if torch.cuda.is_available() else "cpu")
-    
-    # Generate response
-    with torch.no_grad():
-        output = model.generate(
-            **inputs,
-            max_new_tokens=512,
-            do_sample=False
-        )
-    
-    # Process output
-    response = processor.decode(output[0], skip_special_tokens=True)
-    
-    # Remove the prompt from the response
-    response = response.replace(prompt_text, "").strip()
-    
-    return response
+    conversation = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt_text},
+                {"type": "image"},
+            ],
+        },
+    ]
+
+    # Apply chat template to the conversation
+    prompt = processor.apply_chat_template(conversation, add_generation_prompt=True)
+
+    # Load and preprocess the image
+    # raw_image = Image.open(requests.get(image_url, stream=True).raw)
+    raw_image = Image.open(image_url)
+    inputs = processor(images=raw_image, text=prompt, return_tensors='pt').to(0, torch.float16)
+
+    # Perform inference
+    output = model.generate(**inputs, max_new_tokens=200, do_sample=False)
+
+    # Decode and return the result
+    return processor.decode(output[0], skip_special_tokens=True)
