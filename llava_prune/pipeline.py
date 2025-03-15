@@ -9,48 +9,43 @@ from .pruning import prune_llava_model
 from .inference import perform_inference
 
 
-def iterative_pruning_and_inference(model_name, processor, unimportance_orders, 
-                                   prompt_text, image_url, output_csv):
+def iterative_pruning_and_inference(model_name, processor, unimportance_orders, prompt_text, image_url, output_csv):
     """
-    Perform iterative pruning and inference with a LLaVA model.
-    
+    Iteratively prune the model, perform inference, and save responses.
+
     Args:
-        model_name (str): The name or path of the pre-trained model.
-        processor: The processor for the model.
-        unimportance_orders (list): List of layer indices to prune in order of unimportance.
-        prompt_text (str): The text prompt to use.
-        image_url (str): URL or path to the image to use.
-        output_csv (str): Path to the output CSV file.
-        
-    Returns:
-        None: Results are saved to the output CSV file.
+        model_name: Name of the model to load.
+        processor: The AutoProcessor associated with the model.
+        unimportance_orders: List of lists containing unimportance orders for pruning.
+        prompt_text: A string containing the user prompt.
+        image_url: URL of the image to process.
+        output_csv: Path to the CSV file where results will be saved.
     """
-    # Initialize CSV file
-    file_exists = os.path.isfile(output_csv)
-    with open(output_csv, 'a', newline='') as csvfile:
-        fieldnames = ['pruned_layers', 'response']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        
-        if not file_exists:
-            writer.writeheader()
-        
-        # Original model performance
-        model = prune_llava_model(model_name, [])
-        response = perform_inference(model, processor, prompt_text, image_url)
-        writer.writerow({
-            'pruned_layers': 'None',
-            'response': response
-        })
-        
-        # Iterative pruning
-        pruned_layers = []
-        for layer in tqdm(unimportance_orders):
-            pruned_layers.append(layer)
-            model = prune_llava_model(model_name, pruned_layers)
-            response = perform_inference(model, processor, prompt_text, image_url)
-            writer.writerow({
-                'pruned_layers': ','.join(map(str, pruned_layers)),
-                'response': response
-            })
+    with open(output_csv, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["num_of_layers","Order", "Params" , "response"])
+
+        for i in range(1, len(unimportance_orders) + 1):
+            current_order = unimportance_orders[:i]
+            print(f"Running pruning for unimportance order: {current_order}")
+
+            # Prune the model
+            model_pruned = prune_llava_model(model_name, current_order)
+            total_params = 0
+            total_params = sum(p.numel() for p in model_pruned.parameters() if p.requires_grad)
+
+            # Perform inference
+            t = time.time()
+            response = perform_inference(model_pruned, processor, prompt_text, image_url)
             
-    print(f"Results saved to {output_csv}")
+            print(f"Inference time {time.time() - t:.5f} sec. Response for pruning {current_order}: {response}, ")
+
+            # Save results to CSV
+            num_layers_remaining = 32- i
+            writer.writerow([num_layers_remaining, current_order, total_params , response])
+
+            # Clear GPU memory
+            del model_pruned
+            del total_params
+            torch.cuda.empty_cache()
+            gc.collect()
