@@ -12,9 +12,12 @@ Ensure you have the following dependencies installed:
 ```bash
 pip install torch transformers pillow requests
 ```
+## Installation
 
 ## Usage
-
+```bash
+pip install -e .
+```
 ### 1. Pruning and Inference
 The script iteratively prunes the LLAVA model and performs inference on an image.
 
@@ -32,7 +35,13 @@ image_url = "/kaggle/working/LLaVA_Prune/images/rosacea-70.jpg"
 output_csv = "responses.csv"
 iterative_pruning_and_inference(model_name, processor, unimportance_orders, prompt, image_url, output_csv)
 ```
-
+#### With CLI
+```bash
+llava-prune --model-name "Aranya31/Derm-LLaVA-1.5-7b-conv2" \
+           --prompt "What are the clinical features of rosacea?" \
+           --image "./images/rosacea-70.jpg" \
+           --output "responses.csv"
+```
 ### 2. Saving Results
 The script saves inference results in a CSV file (`results.csv`) with two columns:
 - `num_of_layer`: The number of layers remaining after pruning.
