@@ -37,12 +37,8 @@ def main():
     )
     
     # Load model
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model_name,
-        torch_dtype=torch.float16,
-        device_map="auto"
-    )
-    
+
+    model = prune_llava_model(model_name, unimportance_orders)
     # Run inference
     response = perform_inference(
         model,
