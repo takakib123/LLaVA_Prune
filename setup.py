@@ -18,6 +18,7 @@ setup(
     entry_points={
         "console_scripts": [
             "llava-prune=scripts.run_pruning:main",
+            "llava-prune-blocks=scripts.run_pruning_multiple.py:main",
         ],
     },
 )
