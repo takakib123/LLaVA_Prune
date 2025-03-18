@@ -27,6 +27,8 @@ def main():
                         help="Path to the image to use")
 
     args = parser.parse_args()
+    # Parse unimportance orders
+    unimportance_orders = list(map(int, args.unimportance_orders.split(',')))
     
     # Load processor
     processor = AutoProcessor.from_pretrained(
