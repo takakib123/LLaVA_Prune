@@ -20,6 +20,9 @@ def main():
                         help="Revision of the processor")
     parser.add_argument("--prompt", type=str, required=True,
                         help="Text prompt to use")
+    parser.add_argument("--unimportance-orders", type=str, 
+                        default="23,4,18,22,21,24,17,27,20,26,19,29,28,5",
+                        help="Comma-separated list of layer indices to prune in order of unimportance")
     parser.add_argument("--image", type=str, required=True,
                         help="Path to the image to use")
 
