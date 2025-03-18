@@ -19,6 +19,7 @@ setup(
         "console_scripts": [
             "llava-prune=scripts.run_pruning:main",
             "llava-prune-blocks=scripts.run_pruning_multiple.py:main",
+            "llava-pruning=scripts.prune_model:main",
         ],
     },
 )
