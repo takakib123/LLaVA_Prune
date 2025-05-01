@@ -10,3 +10,5 @@ bitsandbytes
 sentencepiece
 wandb
 protobuf
+torchao
+https://github.com/mobiusml/gemlite.git
