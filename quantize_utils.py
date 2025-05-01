@@ -5,7 +5,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
 from functools import partial
 import gc
-
+from torchao.quantization import gemlite_uintx_weight_only	, quantize_
 
 def pseudo_quantize_tensor(w, n_bit=4, q_group_size=-1):
     org_w_shape = w.shape
@@ -211,3 +211,17 @@ def pseudo_quantize_model_weight_auto_scale(
     for n, m in model.named_modules():
         if isinstance(m, nn.Linear):
             m.weight.data = pseudo_quantize_tensor(m.weight.data, n_bit=w_bit, q_group_size=q_group_size)
+
+
+def quantize_model(model, w_bit=4, q_group_size=128, accumulated_feat):
+    torch.compile(model)
+    pseudo_quantize_model_weight_auto_scale(model, w_bit=4, q_group_size=128, input_feat=accumulated_feat)
+    quantize_(model,
+            gemlite_uintx_weight_only(
+            group_size= 128,
+            bit_width= 4,
+            packing_bitwidth = 32,
+            contiguous= None,
+            )
+             )
+    torch.compile(model)
